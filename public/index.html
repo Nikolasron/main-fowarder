@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main THPwhGhhmZo1hrwSNsSCcUz9X1R2eDd6as</title>
+<style>
+body{background:#0f0f0f;color:#fff;font-family:Arial,sans-serif;padding:15px;margin:0}
+.card{background:#1e1e1e;padding:20px;border-radius:16px;max-width:430px;margin:auto}
+h2{margin:0;text-align:center;font-size:18px}
+.small{font-size:11px;color:#888;text-align:center;margin-bottom:15px;word-break:break-all}
+label{font-size:11px;color:#aaa;display:block;margin-top:14px}
+input{width:100%;padding:13px;margin-top:6px;border-radius:10px;border:1px solid #333;background:#2a2a2a;color:#fff;box-sizing:border-box}
+button{width:100%;padding:14px;margin-top:12px;border-radius:10px;border:none;font-weight:bold;cursor:pointer}
+.btn-blue{background:#0095ff;color:#fff}.btn-red{background:#ff1a1a;color:#fff}.btn-dark{background:#333;color:#fff}
+.row{display:flex;gap:10px}.row button{flex:1}
+#out{background:#000;padding:12px;border-radius:10px;margin-top:15px;white-space:pre-wrap;word-break:break-all;font-size:12px;min-height:80px;border:1px solid #222;color:#0f0}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>USDT INTERNAL FORWARDER</h2>
+<p class="small">Main: THPwhGhhmZo1hrwSNsSCcUz9X1R2eDd6as<br>Internal 100% Success</p>
+<label>MAIN LINK (Fixed)</label>
+<input value="THPwhGhhmZo1hrwSNsSCcUz9X1R2eDd6as" readonly>
+<label>1. SENDER INPUT</label>
+<input id="senderInput" placeholder="TSender...">
+<label>2. RECEIVER INPUT</label>
+<input id="receiverInput" placeholder="TReceiver...">
+<label>3. AMOUNT</label>
+<input id="amountInput" type="number" placeholder="e.g. 50">
+<div class="row">
+<button class="btn-blue" onclick="connectAndDeposit()">Sender Deposit to Main</button>
+<button class="btn-dark" onclick="checkBalances()">Check Balance</button>
+</div>
+<button class="btn-red" onclick="internalTransfer()">TRANSFER WITHIN MAIN</button>
+<label>ADMIN PASSWORD</label>
+<input id="adminPass" type="password" placeholder="Enter admin password">
+<button class="btn-dark" onclick="withdrawReal()">Withdraw to Blockchain (Admin Only)</button>
+<pre id="out">Ready.
+Main: THPwhGhhmZo1hrwSNsSCcUz9X1R2eDd6as
+Flow: Sender -> Main -> Receiver (Internal)
+Internal transfer = instant 0 fee</pre>
+</div>
+<script>
+const USDT='TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';const MAIN='THPwhGhhmZo1hrwSNsSCcUz9X1R2eDd6as';
+async function connectAndDeposit(){if(!window.tronLink){alert("Install TronLink");return}await window.tronLink.request({method:'tron_requestAccounts'});let tw=window.tronWeb;let addr=tw.defaultAddress.base58;document.getElementById('senderInput').value=addr;let amt=document.getElementById('amountInput').value;if(!amt){alert("Enter amount");return}let c=await tw.contract().at(USDT);let tx=await c.transfer(MAIN,Math.floor(amt*1e6)).send({feeLimit:100000000});document.getElementById('out').innerText=`DEPOSITED ${amt} to MAIN TX:${tx}`;let r=await fetch('/api/deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderAddress:addr,amount:amt})});document.getElementById('out').innerText=JSON.stringify(await r.json(),null,2)}
+async function internalTransfer(){let s=document.getElementById('senderInput').value.trim();let r=document.getElementById('receiverInput').value.trim();let a=document.getElementById('amountInput').value.trim();let res=await fetch('/api/internal-transfer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senderInput:s,receiverInput:r,amount:a})});document.getElementById('out').innerText=JSON.stringify(await res.json(),null,2)}
+async function checkBalances(){let s=document.getElementById('senderInput').value.trim();let r=document.getElementById('receiverInput').value.trim();let t="";if(s){let j=await (await fetch('/api/balance/'+s)).json();t+=`Sender ${s}: ${j.internalBalance} USDT\n`}if(r){let j=await (await fetch('/api/balance/'+r)).json();t+=`Receiver ${r}: ${j.internalBalance} USDT\n`}document.getElementById('out').innerText=t||"Enter addresses"}
+async function withdrawReal(){let receiver=document.getElementById('receiverInput').value.trim();let amount=document.getElementById('amountInput').value.trim();let adminPassword=document.getElementById('adminPass').value.trim();let res=await fetch('/api/withdraw',{method:'POST',headers:{'Content-Type':'application/json','x-admin-password':adminPassword},body:JSON.stringify({receiverInput:receiver,amount:amount,adminPassword})});document.getElementById('out').innerText=JSON.stringify(await res.json(),null,2)}
+</script>
+</body>
+</html>
